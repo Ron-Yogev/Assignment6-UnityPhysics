@@ -2,8 +2,8 @@
 
 
 /**
- * This component lets the player drag its object while clicking the left mouse button,
- * and drop it by releasing the mouse.
+ * This component lets the player drag the ball while clicking the left mouse button,
+ * and flick it in order to shoot the ball.
  */
 [RequireComponent(typeof(Rigidbody))]
 public class Bowlling : MonoBehaviour
@@ -12,10 +12,16 @@ public class Bowlling : MonoBehaviour
     [Header("These fields are for display only")]
     [SerializeField] private Vector3 positionMinusMouse;
     [SerializeField] private float screenYCoordinate;
+
+    //start vector for calculationg velocity
     Vector3 Svelocity;
+    //end vector for calculationg velocity
     Vector3 Evelocity;
+    //1 throw each turn
+    bool thrown = false;
 
     private Rigidbody rb;
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -35,26 +41,54 @@ public class Bowlling : MonoBehaviour
     void OnMouseDrag()
     {
         if (!rb.IsSleeping()) return;  // Do not allow the player to drag the object when it is moving.
-        transform.position = positionMinusMouse + MousePositionOnWorld();
+        // dragging the object via mouse position
+        Vector3 next_point = positionMinusMouse + MousePositionOnWorld();
+        // drag boundaries 
+        transform.position = mouseDragAround(next_point);
+        // always the mouse is moving update the potential start vector in order to calculating the velocity
         Svelocity = MousePositionOnWorld();
+    }
+
+    //drag boundaries
+    Vector3 mouseDragAround(Vector3 pos)
+    {
+        if (pos.x < -1.7f) pos.x = -1.7f;
+        if (pos.x > 1.7f) pos.x = 1.7f;
+        if (pos.z < -8f) pos.z = -8f;
+        if (pos.z > -6.5f) pos.z = -6.5f;
+        return pos;
     }
 
     // This function is called when the player releases the mouse button.
     void OnMouseUp()
     {
-        if (!rb.IsSleeping()) return;
-        Evelocity = MousePositionOnWorld();
-        Vector3 velocityf= Evelocity - Svelocity;
-        velocityf *= 10f;
-        //velocityf.y = 0;
-        rb.velocity = velocityf;
-        rb.isKinematic = false;
+        // if the ball not thrown yet in this turn
+        if (!thrown)
+        { 
+            Evelocity = MousePositionOnWorld();
+            // computing the velocity by to vectors(end - start)
+            Vector3 velocityf = Evelocity - Svelocity;
+            velocityf *= 6f;
+            velocityf.y = 0;
+
+            // initial the ball velocity
+            rb.velocity = velocityf;
+            rb.isKinematic = false;
+            thrown = true;
+        }
     }
 
+    // this function returns the position of the mouse on the track
     private Vector3 MousePositionOnWorld()
     {
         Vector3 mouseOnScreen = new Vector3(Input.mousePosition.x/45f, screenYCoordinate, Input.mousePosition.y / 45f);
         mouseOnScreen.y = screenYCoordinate;
         return mouseOnScreen;
+    }
+
+    // set for thrown var
+    public void setThrown(bool thrown)
+    {
+        this.thrown = thrown;
     }
 }
