@@ -1,72 +1,60 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using UnityEngine;
+
 
 /**
- * This component lets the player push the Bowlly ball.
+ * This component lets the player drag its object while clicking the left mouse button,
+ * and drop it by releasing the mouse.
  */
-public class BasketballBall : MonoBehaviour
+[RequireComponent(typeof(Rigidbody))]
+public class Bowlling : MonoBehaviour
 {
-    [SerializeField] float forceSize = 30f;
-    [SerializeField] float timeFromHittingTheFloorToRestart = 2f;
+
+    [Header("These fields are for display only")]
+    [SerializeField] private Vector3 positionMinusMouse;
+    [SerializeField] private float screenYCoordinate;
+    Vector3 Svelocity;
+    Vector3 Evelocity;
 
     private Rigidbody rb;
-    private Vector3 endPosition;
-    private Vector3 startPosition;
-
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+        
     }
 
+    // This function is called when the player clicks the collider of this object.
     void OnMouseDown()
     {
-        rb.isKinematic = true;
-        startPosition = GetMouseAsWorldPoint();
+        if (!rb.IsSleeping()) return;  // Do not allow the player to drag the object when it is moving.
+        rb.isKinematic = true; // ignore forces, since the player now moves the object.
+        screenYCoordinate = Camera.main.WorldToScreenPoint(gameObject.transform.position).y;
+        positionMinusMouse = transform.position - MousePositionOnWorld();
     }
 
+    // This function is called when the player drags the mouse.
     void OnMouseDrag()
     {
-        transform.position = GetMouseAsWorldPoint();
+        if (!rb.IsSleeping()) return;  // Do not allow the player to drag the object when it is moving.
+        transform.position = positionMinusMouse + MousePositionOnWorld();
+        Svelocity = MousePositionOnWorld();
     }
 
+    // This function is called when the player releases the mouse button.
     void OnMouseUp()
     {
+        if (!rb.IsSleeping()) return;
+        Evelocity = MousePositionOnWorld();
+        Vector3 velocityf= Evelocity - Svelocity;
+        velocityf *= 10f;
+        //velocityf.y = 0;
+        rb.velocity = velocityf;
         rb.isKinematic = false;
-        endPosition = GetMouseAsWorldPoint();
-        Vector3 forceDirection = (endPosition - startPosition).normalized;
-        rb.AddForce(forceDirection * forceSize, ForceMode.Impulse);
     }
 
-    private Vector3 GetMouseAsWorldPoint()
+    private Vector3 MousePositionOnWorld()
     {
-        Vector3 mousePoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePoint.z = transform.position.z;
-        return mousePoint;
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.tag == "boundery")
-        {
-            RestartLevel();
-        }
-        else if (other.tag == "Platform")
-        {
-            StartCoroutine(HitTheFloor());
-            print("Platform");
-        }
-    }
-
-    IEnumerator HitTheFloor()
-    {
-        yield return new WaitForSeconds(timeFromHittingTheFloorToRestart);
-        RestartLevel();
-    }
-
-    private void RestartLevel()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        Vector3 mouseOnScreen = new Vector3(Input.mousePosition.x/45f, screenYCoordinate, Input.mousePosition.y / 45f);
+        mouseOnScreen.y = screenYCoordinate;
+        return mouseOnScreen;
     }
 }
