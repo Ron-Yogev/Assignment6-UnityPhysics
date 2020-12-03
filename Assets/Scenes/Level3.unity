@@ -2230,7 +2230,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numOfBottles: 12
-  bottlesLeft: 12
 --- !u!224 &1755981817
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2545,5 +2544,5 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 70.37807, y: 4.8069267, z: 100.237854}
-  m_Center: {x: 1.4070663, y: -1.9034634, z: 8.883881}
+  m_Size: {x: 176.10355, y: 4.8069267, z: 243.34407}
+  m_Center: {x: 0.3419037, y: -1.9034634, z: 80.43699}
